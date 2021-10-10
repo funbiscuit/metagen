@@ -49,7 +49,11 @@ You need to place `metagen.json` inside `res` directory in your project root. Th
   "output" : "meta",
   // project_name is used to prepend header defines so it doesn't collide with any of your defines
   // it is also used to name library that you'll need to link your executable
-  "project_name" : "AppMeta"
+  "project_name" : "AppMeta",
+  // win_rc_template is path to template file for windows resource generation
+  // it is just a normal resource file, but all versions will be replaced with generated ones
+  // original file is not modified, generated is put into output directory
+  "win_rc_template": "win.rc"
 }
 ~~~
 

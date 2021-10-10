@@ -1,4 +1,5 @@
 {
   "output": "meta",
-  "project_name": "AppMeta"
+  "project_name": "AppMeta",
+  "win_rc_template": "win.rc"
 }
