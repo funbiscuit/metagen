@@ -61,9 +61,10 @@ SOURCE_TEMPLATE = """/**
 
 
 class GitVersionResult:
-    def __init__(self, version, full_version):
+    def __init__(self, version, full_version, commit_hash):
         self.ver = version
         self.ver_git = full_version
+        self.commit_hash = commit_hash
         self.exact = version == full_version
         self.build = 0
 
@@ -100,6 +101,7 @@ class GitVersionResult:
 def get_version_from_git():
     version = "0.0.0"
     full_version = "0.0.0-0-"
+    commit_hash = ""
     try:
         # get actual version
         res = subprocess.check_output(
@@ -111,9 +113,11 @@ def get_version_from_git():
             "git describe --tags --match \"v*\""
         ).decode("utf-8")
         full_version = res[1:].strip()
+        # get current commit hash
+        commit_hash = subprocess.check_output("git rev-parse HEAD").decode("utf-8").strip()
     except subprocess.CalledProcessError:
         print("Failed to get version from git")
-    return GitVersionResult(version, full_version)
+    return GitVersionResult(version, full_version, commit_hash)
 
 
 def process_win_rc_template(template_filename, output_dir, ver):
@@ -171,6 +175,7 @@ def process_config():
             "VERSION_BUILD": ver.build,
             "VERSION_IS_SNAPSHOT": not ver.exact,
             "BUILD_DATE": build_date,
+            "BUILD_COMMIT": ver.commit_hash,
         }
 
         body = ""
