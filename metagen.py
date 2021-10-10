@@ -173,7 +173,7 @@ def process_config():
             "VERSION_MINOR": ver.minor,
             "VERSION_PATCH": ver.patch,
             "VERSION_BUILD": ver.build,
-            "VERSION_IS_SNAPSHOT": not ver.exact,
+            "BUILD_SNAPSHOT": not ver.exact,
             "BUILD_DATE": build_date,
             "BUILD_COMMIT": ver.commit_hash,
         }

@@ -8,6 +8,22 @@ Generates version defines based on closest reachable tag in git repository Forma
 and Z (with corresponding dots) are optional (treated as 0 if not present). If no git tag is available or even git is
 not available, generated version will be 0.0.0. If tag is not placed on current commit, "-SNAPSHOT" will be appended
 
+### C/C++ defines
+
+C/C++ defines are added to meta.h header file. Include it to your project to access generated values.
+
+| define                   | description                                                                                                    |
+|--------------------------|----------------------------------------------------------------------------------------------------------------|
+| APPMETA_VERSION_STR      | Version string. Based on latest reachable tag from current commit. In format vX.Y.Z (e.g. v2.1.3)              |
+| APPMETA_VERSION_FULL_STR | Full version string (same as version, but -SNAPSHOT is added if built from non tagged commit)                  |
+| APPMETA_VERSION_MAJOR    | Major version integer (e.g. 2)                                                                                 |
+| APPMETA_VERSION_MINOR    | Minor version integer (e.g. 1)                                                                                 |
+| APPMETA_VERSION_PATCH    | Patch version intgerer (e.g. 3)                                                                                |
+| APPMETA_VERSION_BUILD    | Build integer. It is number of commits which were added since last version tag (0 if current commit is tagged) |
+| APPMETA_BUILD_SNAPSHOT   | 0 if current commit has tag, 1 otherwise                                                                       |
+| APPMETA_BUILD_DATE       | String of build date in ISO8601 format (YYYY-MM-DD)                                                            |
+| APPMETA_BUILD_COMMIT     | String with current commit hash                                                                                |
+
 ## How to use
 
 It is the simplest to use this builder with CMake project.
