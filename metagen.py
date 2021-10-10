@@ -153,8 +153,7 @@ def process_config():
     os.makedirs(src_path, exist_ok=True)
     win_rc_filename = None
     build_date = "{:%Y-%m-%d}".format(datetime.date.today())
-
-    if "win_rc_template" in config:
+    if "win_rc_template" in config and sys.platform == "win32":
         win_rc_filename = config["win_rc_template"]
         process_win_rc_template(win_rc_filename, src_path, ver)
 
