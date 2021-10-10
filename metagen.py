@@ -52,10 +52,13 @@ HEADER_TEMPLATE = """/**
 
 
 class GitVersionResult:
-    def __init__(self, version, exact):
+    def __init__(self, version, full_version):
         self.ver = version
-        self.exact = exact
-        p = re.compile('^(\d+)(?:\.(\d+))?(?:\.(\d+))?')
+        self.ver_git = full_version
+        self.exact = version == full_version
+        self.build = 0
+
+        p = re.compile(r'^(\d+)(?:\.(\d+))?(?:\.(\d+))?')
         m = p.match(version)
         self.major = None
         self.minor = None
@@ -75,13 +78,19 @@ class GitVersionResult:
         self.patch = int(self.patch)
         self.ver = "v%d.%d.%d" % (self.major, self.minor, self.patch)
         self.ver_full = self.ver
-        if not exact:
+        if not self.exact:
             self.ver_full += "-SNAPSHOT"
+
+        # get build number
+        p = re.compile(r'^-(\d+)')
+        m = p.match(self.ver_git[len(version):])
+        if m:
+            self.build = int(m.group(1))
 
 
 def get_version_from_git():
     version = "0.0.0"
-    exact = False
+    full_version = "0.0.0-0-"
     try:
         # get actual version
         res = subprocess.check_output(
@@ -92,10 +101,10 @@ def get_version_from_git():
         res = subprocess.check_output(
             "git describe --tags --match \"v*\""
         ).decode("utf-8")
-        exact = version == res[1:].strip()
+        full_version = res[1:].strip()
     except subprocess.CalledProcessError:
         print("Failed to get version from git")
-    return GitVersionResult(version, exact=exact)
+    return GitVersionResult(version, full_version)
 
 
 def process_config():
@@ -125,6 +134,8 @@ def process_config():
         body += "%s_VERSION_MINOR %d" % (define_prefix, ver.minor)
         body += "\n"
         body += "%s_VERSION_PATCH %d" % (define_prefix, ver.patch)
+        body += "\n"
+        body += "%s_VERSION_BUILD %d" % (define_prefix, ver.build)
         body += "\n"
         if ver.exact:
             body += "%s_VERSION_SNAPSHOT 0" % define_prefix
