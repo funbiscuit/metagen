@@ -16,39 +16,12 @@ parser.add_argument('-t', dest='timeout', help='How much to wait for another ins
 # 1s is more than enough
 parser.set_defaults(timeout=1)
 args = parser.parse_args()
-timeout = float(args.timeout)
 
 if not os.path.exists(args.work_dir):
     print("Working directory %s does not exist!" % args.work_dir)
     sys.exit(-1)
 
 os.chdir(args.work_dir)
-
-try:
-    lockFile = open(LOCK_FILENAME, "x")
-    lockFile.close()
-except FileExistsError as e:
-    start = time.time()
-    # if lock file exist, there are two options: another instance is running or it has crashed
-    # if this is the first option - just wait until another instance finishes its job and
-    # report that files were created by it (not treated as error)
-    # if in `timeout` seconds another instance doesn't finish - there is a good chance it has crashed
-    # and left its lock file in place. Report this as error and tell user to manually delete lock file
-    # Usually runtime of this script is less than a second
-    print("Waiting up to %0.2f seconds for another instance to finish..." % timeout)
-    while os.path.isfile(LOCK_FILENAME) and time.time() < start + timeout:
-        time.sleep(0.1)
-    if os.path.isfile(LOCK_FILENAME):
-        print("Another instance did not finish in specified amount of time, exiting.\n" +
-              "If you are sure that another instance is not running, manually delete " +
-              "lock file '" + LOCK_FILENAME + "' from working directory.")
-        print("If you are sure that you need more time for generation send it as argument:")
-        print("python metagen.py -t=[timeout in seconds] [work_dir]")
-        sys.exit(-1)
-    else:
-        print("Files were created by another instance, exiting.\n" +
-              "You can restart script if needed.")
-        sys.exit(0)
 
 if not os.path.exists(CONFIG_FILENAME):
     print("Working directory %s must contain '%s'!" % (args.work_dir, CONFIG_FILENAME))
@@ -162,6 +135,34 @@ def process_config():
         header.close()
 
 
-with open(CONFIG_FILENAME) as configFile:
-    process_config()
-    os.remove(LOCK_FILENAME)
+try:
+    lockFile = open(LOCK_FILENAME, "x")
+    lockFile.close()
+
+    with open(CONFIG_FILENAME) as configFile:
+        process_config()
+except FileExistsError as e:
+    start = time.time()
+    # if lock file exist, there are two options: another instance is running or it has crashed
+    # if this is the first option - just wait until another instance finishes its job and
+    # report that files were created by it (not treated as error)
+    # if in `timeout` seconds another instance doesn't finish - there is a good chance it has crashed
+    # and left its lock file in place. Report this as error and tell user to manually delete lock file
+    # Usually runtime of this script is less than a second
+    print("Waiting up to %0.2f seconds for another instance to finish..." % float(args.timeout))
+    while os.path.isfile(LOCK_FILENAME) and time.time() < start + float(args.timeout):
+        time.sleep(0.1)
+    if os.path.isfile(LOCK_FILENAME):
+        print("Another instance did not finish in specified amount of time, exiting.\n" +
+              "If you are sure that another instance is not running, manually delete " +
+              "lock file '" + LOCK_FILENAME + "' from working directory.")
+        print("If you are sure that you need more time for generation send it as argument:")
+        print("python metagen.py -t=[timeout in seconds] [work_dir]")
+        sys.exit(-1)
+    else:
+        print("Files were created by another instance, exiting.\n" +
+              "You can restart script if needed.")
+        sys.exit(0)
+finally:
+    if os.path.exists(LOCK_FILENAME):
+        os.remove(LOCK_FILENAME)
